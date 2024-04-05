@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../data_structures/dynamic_array.h"
 #include "../data_structures/film_struct.h"
+#include "../data_structures/stack.hpp"
 #include "sorts.hpp"
 #include <random>
 
@@ -38,13 +39,26 @@ unsigned int partition(DynamicArray<film_struct>* dynarray, unsigned int left, u
 // Function quick sorting given dynamic array object
 void quick_sort(DynamicArray<film_struct>* dynarray, unsigned int left, unsigned int right)
 {
-    if (left < right) 
-	{
-        unsigned int partition_index = partition(dynarray, left, right);
+    Stack<unsigned int> stack;
+    stack.push(left);
+    stack.push(right);
 
-        // Recurency
-		if (partition_index != 0)
-        	quick_sort(dynarray, left, partition_index - 1);
-        quick_sort(dynarray, partition_index + 1, right);
+    while (!stack.empty()) 
+	{
+        right = stack.pop();
+        left = stack.pop();
+        unsigned int partition_index = partition(dynarray, left, right);
+        
+
+        // Recurency but with stack implementation
+        if (partition_index - 1 > left && partition_index != 0) {
+            stack.push(left);
+            stack.push(partition_index - 1);
+        }
+
+        if (partition_index + 1 < right) {
+            stack.push(partition_index + 1);
+            stack.push(right);
+        }
     }
 }

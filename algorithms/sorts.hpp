@@ -4,3 +4,4 @@
 
 void quick_sort(DynamicArray<film_struct>* dynarray, unsigned int left, unsigned int right);
 void bucket_sort(DynamicArray<film_struct>* dynarray, unsigned int n);
+void merge_sort(DynamicArray<film_struct>* dynarray, int left, int right);

@@ -190,14 +190,16 @@ int find_by_title(DynamicArray<film_struct> *dynarray)
 
 int find_and_delete_empty_ranks(DynamicArray<film_struct> *dynarray)
 {
-    unsigned int value_to_find = 0;
+    int value_to_find = -1;
     Timer timer;
     timer.start();
-    unsigned int val = 0;
     for (unsigned int i=0; i<dynarray->get_size(); i++)
     {
         if (value_to_find == (*dynarray)[i].rank)
+        {
             dynarray->remove_at(i);
+            i--;
+        }
     }
     timer.stop();
     if (print_time)
@@ -216,6 +218,10 @@ int sort(DynamicArray<film_struct> *dynarray)
     else if (sort_type == "bucket")
     {
         bucket_sort(dynarray, dynarray->get_size());
+    }
+    else if (sort_type == "merge")
+    {
+        merge_sort(dynarray, 0, dynarray->get_size()-1);
     }
     return 0;
 }
@@ -328,7 +334,7 @@ int fill_from_file(DynamicArray<film_struct> *dynarray)
         if (field != "")
             film.rank = std::stof(field);
         else
-            film.rank = 0;
+            film.rank = -1;
 
         dynarray->add_back(film);
     }
