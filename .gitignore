@@ -1,0 +1,4 @@
+*.exe
+generated_data/**
+test_results/**
+*.csv
