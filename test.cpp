@@ -1,8 +1,6 @@
 #include "Timer.h"
 #include "data_structures/I_data_structure.h"
-#include "data_structures/list.h"
-#include "data_structures/list_ht.h"
-#include "data_structures/list_double.h"
+#include "data_structures/list_double.hpp"
 #include "data_structures/dynamic_array.h"
 #include <iostream>
 #include <fstream>

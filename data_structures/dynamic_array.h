@@ -206,17 +206,17 @@ public:
         return size;
     }
 
-    Type first_value()
+    Type& first_value()
     {
         return arr[0];
     }
 
-    Type last_value()
+    Type& last_value()
     {
         return arr[size-1];
     }
 
-    Type value_at(unsigned int position)
+    Type& value_at(unsigned int position)
     {
         if (position < 0 || position >= size)
             throw std::out_of_range("Position out of range");

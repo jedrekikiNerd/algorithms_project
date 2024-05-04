@@ -1,7 +1,6 @@
 #ifndef NODES
 #define NODES
 
-
 /**
  * Node class for single container used by basic list
  * It contains pointer to next container and stores value of type read from template
@@ -30,6 +29,7 @@ public:
     Type value;
     DoubleNode<Type>* next_element;
     DoubleNode<Type>* previous_element;
+
 
     DoubleNode(Type value) : value(value), next_element(nullptr), previous_element(nullptr) {}
 

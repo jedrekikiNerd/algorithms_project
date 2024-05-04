@@ -3,10 +3,26 @@
 #include "ui.h"
 #include "ui_actions.h"
 #include "data_structures/dynamic_array.h"
+#include "data_structures/graph.hpp"
 #include "data_structures/filmdata_structures_manual_ui.hpp"
+#include "data_structures/graph_ui_manual.hpp"
 #include "test.h"
 #include "data_structures/film_struct.h"
 
+
+// Create and return menu for graph on neighbor list
+MenuGraph<std::string>* setup_graph1_menu()
+{
+    MenuGraph<std::string> *graph1_menu = new MenuGraph<std::string>(new DirectedWeightedGraph<std::string>);
+    graph1_menu->add_item_dt("|Dodaj wierzchołek", add_vertex);
+    graph1_menu->add_item_dt("|Dodaj krawędź", add_edge);
+    graph1_menu->add_item_dt("|Usuń wierzchołek", remove_vertex);
+    graph1_menu->add_item_dt("|Usuń krawędź", remove_edge);
+    graph1_menu->add_item("|Wyświetlanie czasu", change_print_flag);
+    graph1_menu->add_item("|Wróć do wyboru struktur", exit_action);
+
+    return graph1_menu;
+}
 
 // Create and return menu for dynarray
 MenuDt<film_struct>* setup_dynarray_menu()
@@ -55,6 +71,7 @@ Menu* set_up_ui()
     Menu *main_menu = new Menu();
     main_menu->add_item("|Wykonaj automatyczne testy", run_tests);
     main_menu->add_item("|Praca z listą filmów", setup_dynarray_menu());
+    main_menu->add_item("|Praca z grafem", setup_graph1_menu());
     main_menu->add_item("|Pomoc", display_help);
     main_menu->add_item("|Exit", exit_action);
     

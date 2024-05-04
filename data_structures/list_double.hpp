@@ -5,7 +5,8 @@
 #include <stdexcept>
 #include "I_data_structure.h"
 #include <type_traits>
-#include "nodes.h"
+#include "nodes.hpp"
+#include "to_strings.hpp"
 
 
 /**
@@ -18,12 +19,15 @@ class DoubleListHT : public IDataStructure<Type>
 private:
     DoubleNode<Type>* head;
     DoubleNode<Type>* tail;
-    unsigned int size;
+    //unsigned int size;
 
 
 public:
+
+    unsigned int size;
     DoubleListHT() : head(nullptr), tail(nullptr), size(0) {}
-    ~DoubleListHT() {
+    ~DoubleListHT()
+    {
         clear();
     }
 
@@ -64,7 +68,7 @@ public:
     }
 
     // Adds element to the tail of the list and returns pointer to doublenode that contains added value
-    DoubleNode* add_back_special(Type value)
+    DoubleNode<Type>* add_back_special(Type value)
     {
         DoubleNode<Type>* new_node = new DoubleNode<Type>(value);
         if (head == nullptr)
@@ -228,6 +232,8 @@ public:
 
     void remove_given(DoubleNode<Type>* given_node)
     {
+            if (given_node == nullptr)
+                return;
             DoubleNode<Type>* prev_node = given_node->previous_element;
             DoubleNode<Type>* next_node = given_node->next_element;
 
@@ -248,7 +254,7 @@ public:
     }
 
     // Returns first value (head value)
-    Type first_value()
+    Type& first_value()
     {
         if (head==nullptr)
             throw std::out_of_range("Index is out of range");
@@ -256,14 +262,14 @@ public:
     }
 
     // Returns last value (tail value)
-    Type last_value()
+    Type& last_value()
     {
         if (tail==nullptr)
             throw std::out_of_range("Index is out of range");
         return tail->value;
     }
 
-    Type value_at(unsigned int position)
+    Type& value_at(unsigned int position)
     {
         if (position >= size)
             throw std::out_of_range("Index is out of range");
@@ -287,10 +293,11 @@ public:
         }
     }
 
-    Type& operator[](unsigned int position)
+    // Returns pointer to first node
+    DoubleNode<Type>* first_node()
     {
-        return value_at(position);
-    };
+        return head;
+    }
 
     // Returns size of list
     unsigned int get_size()
@@ -322,7 +329,7 @@ public:
             return "ERROR: typename of this list is not supported by this method!";
         while(current_node != nullptr)
         {
-            output += std::to_string(current_node->value);
+            output += choose_to_string(current_node->value);
             current_node = current_node->next_element;
             if (current_node != nullptr)
                 output += ", ";
@@ -360,5 +367,11 @@ public:
         
         current_node->value = value;
     }
+    
+    Type& operator[](unsigned int position)
+    {
+        return value_at(position);
+    };
 };
+
 #endif

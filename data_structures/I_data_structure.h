@@ -28,11 +28,11 @@ public:
     virtual void clear() = 0;
 
     // Returns value at first index
-    virtual Type first_value() = 0;
+    virtual Type& first_value() = 0;
     // Returns value at last index
-    virtual Type last_value() = 0;
+    virtual Type& last_value() = 0;
     // Returns value at given index
-    virtual Type value_at(unsigned int position) = 0;
+    virtual Type& value_at(unsigned int position) = 0;
 
     // Returns number of values stored inside data structure
     virtual unsigned int get_size() = 0;

@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include "I_data_structure.h"
 #include <type_traits>
-#include "nodes.h"
+#include "nodes.hpp"
 
 
 /**
@@ -178,7 +178,7 @@ public:
     }
 
     // Returns first value (head value)
-    Type first_value()
+    Type &first_value()
     {
         if (head==nullptr)
             throw std::out_of_range("Index is out of range");
@@ -186,14 +186,14 @@ public:
     }
 
     // Returns last value (tail value)
-    Type last_value()
+    Type &last_value()
     {
         if (tail==nullptr)
             throw std::out_of_range("Index is out of range");
         return tail->value;
     }
 
-    Type value_at(unsigned int position)
+    Type &value_at(unsigned int position)
     {
         if (position >= size or position < 0)
             throw std::out_of_range("Index is out of range");
