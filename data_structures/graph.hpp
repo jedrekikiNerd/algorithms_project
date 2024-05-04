@@ -4,6 +4,8 @@
 #include <random>
 #include <limits>
 #include <algorithm>
+#include "list_double.h"
+#include "nodes.h"
 
 class Vertex;
 
@@ -13,6 +15,7 @@ public:
     Vertex *from;
     Vertex *to;
     double weight;
+    std::vector<DoubleNode<Edge>*> references_to_self;
     Edge(Vertex* f, Vertex* t, double w) : from(f), to(t), weight(w) {}
 };
 
@@ -22,7 +25,7 @@ public:
     int id;
     std::string label;
     std::string data;
-    std::vector<Edge> neighbors;
+    DoubleListHT<Edge*> neighbors;
 
     Vertex(int i, std::string l, std::string d = "") : id(i), label(l), data(d) {}
 };
@@ -31,6 +34,7 @@ class DirectedWeightedGraph
 {
 private:
     std::vector<Vertex> vertices;
+    DoubleListHT<Edge> edges;
     std::mt19937 gen;
 
 public:
@@ -61,62 +65,59 @@ public:
 
     void remove_vertex(int id)
     {
-        vertices.erase(vertices.begin() + id);
-        for (Vertex& vertex : vertices)
+        for(int i=0; i<vertices[id].neighbors.get_size(); i++)
         {
-            vertex.id = &vertex - &vertices[0];
-            vertex.neighbors.erase(std::remove_if(vertex.neighbors.begin(), vertex.neighbors.end(),
-                [&vertices, id](Edge& edge) {
-                    return edge.to->id == id || edge.to >= &vertices.back();
-                }), vertex.neighbors.end());
+            // remove every edge reference and edge itself
+        }
+
+        // Delete given vertex
+        vertices.erase(vertices.begin() + id);
+
+        // Update indexes of vertices
+        for (Vertex &v : vertices)
+        {
+            // Every bigger id has to be decreased by one
+            if (v.id > id)
+            {
+                (v.id)--;
+            }
         }
     }
 
     void add_edge(int fromId, int toId, double weight)
     {
-        vertices[fromId].neighbors.push_back(Edge(&vertices[fromId], &vertices[toId], weight));
+        Edge new_edge(&vertices[fromId], &vertices[toId], weight);
+        new_edge.references_to_self.push_back(edges.add_back_special(new_edge));
+        new_edge.references_to_self.push_back(vertices[fromId].neighbors.add_back_special(&edges.last_value()));
     }
 
     void remove_edge(int fromId, int toId)
     {
-        std::vector<Edge>& neighbors = vertices[fromId].neighbors;
-        neighbors.erase(std::remove_if(neighbors.begin(), neighbors.end(), [&vertices, toId](Edge& edge)
-        {
-            return edge.to->id == toId;
-        }), neighbors.end());
+        
     }
 
-    std::array<Vertex*, 2> end_vertices(Edge& e)
+    double generate_random_weight()
     {
-        return {e.from, e.to};
-    }
-
-    Vertex* opposite(Vertex& v, Edge& e)
-    {
-        if (e.from->id == v.id)
-            return e.to;
-        else if (e.to->id == v.id)
-            return e.from;
-        else
-            return nullptr;
+        std::uniform_real_distribution<double> dis(1.0, 10.0);
+        return dis(gen);
     }
 
     bool areAdjacent(Vertex& v, Vertex& w)
     {
-        for (Edge& edge : v.neighbors)
+        for (Edge* edge : v.neighbors)
         {
-            if (edge.to->id == w.id)
+            if (edge->to->id == w.id)
                 return true;
         }
         return false;
     }
 
-    void replace_data(Vertex& v, const std::string& x)
+    void replace_data(Vertex& v, std::string& x)
     {
         v.data = x;
     }
 
-    void replace(Vertex& v, const std::string& x)
+    void replace(Vertex& v, std::string& x)
     {
         v.label = x;
     }
@@ -126,21 +127,18 @@ public:
         e.weight = x;
     }
 
-    double generate_random_weight()
+    std::string get_as_string()
     {
-        std::uniform_real_distribution<double> dis(1.0, 10.0);
-        return dis(gen);
-    }
-
-    void print_graph()
-    {
-        for (const Vertex& vertex : vertices)
+        std::string output = "";
+        for (Vertex& vertex : vertices)
         {
-            std::cout << "Vertex " << vertex.label << " (" << vertex.id << ") - Data: " << vertex.data << std::endl;
-            for (const Edge& neighbor : vertex.neighbors)
+            output += "Vertex " + vertex.label + " (" + vertex.id + ") - Data: " + vertex.data + "\n";
+            for (Edge* neighbor : vertex.neighbors)
             {
-                std::cout << "  connects to Vertex " << neighbor.to->label << " (" << neighbor.to->id << ") with weight " << neighbor.weight << std::endl;
+                output += "  connects to Vertex " + neighbor->to->label + " (" + neighbor->to->id + ") with weight " + neighbor->weight + "\n";
             }
+            output += "\n";
         }
+        return output;
     }
 };

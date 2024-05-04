@@ -32,6 +32,28 @@ public:
     DoubleNode<Type>* previous_element;
 
     DoubleNode(Type value) : value(value), next_element(nullptr), previous_element(nullptr) {}
+
+    // Overload ++ for simple iteration over list
+    DoubleNode<Type>* operator++(int)
+    {
+        DoubleNode<Type>* temp = this;
+        if (temp != nullptr)
+        {
+            temp = temp->next_element;
+        }
+        return temp;
+    }
+
+    // Overload ++ for simple iteration over list
+    DoubleNode<Type>* operator--(int)
+    {
+        DoubleNode<Type>* temp = this;
+        if (temp != nullptr)
+        {
+            temp = temp->previous_element;
+        }
+        return temp;
+    }
 };
 
 #endif

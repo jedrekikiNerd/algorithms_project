@@ -63,6 +63,25 @@ public:
         size++;
     }
 
+    // Adds element to the tail of the list and returns pointer to doublenode that contains added value
+    DoubleNode* add_back_special(Type value)
+    {
+        DoubleNode<Type>* new_node = new DoubleNode<Type>(value);
+        if (head == nullptr)
+        {
+            head = new_node;
+            tail = new_node;
+        }
+        else
+        {
+            tail->next_element = new_node;
+            new_node->previous_element = tail;
+            tail = new_node;  
+        }
+        size++;
+        return new_node;
+    }
+
     // Adds element on specified index starting counting from head or from tail
     void add_at(Type value, unsigned int position)
     {
@@ -207,6 +226,20 @@ public:
         }
     }
 
+    void remove_given(DoubleNode<Type>* given_node)
+    {
+            DoubleNode<Type>* prev_node = given_node->previous_element;
+            DoubleNode<Type>* next_node = given_node->next_element;
+
+            if (prev_node != nullptr)
+                prev_node->next_element = next_node;
+            if (next_node != nullptr)
+                next_node->previous_element = prev_node;
+
+            delete given_node;
+            size--;
+    }
+
     // Clears all nodes stored by this list, useful for deconstructing to free all memory
     void clear()
     {
@@ -253,6 +286,11 @@ public:
             return current_node->value;
         }
     }
+
+    Type& operator[](unsigned int position)
+    {
+        return value_at(position);
+    };
 
     // Returns size of list
     unsigned int get_size()
