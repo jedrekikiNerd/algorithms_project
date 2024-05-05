@@ -19,10 +19,9 @@ public:
     Vertex<Type> *from;
     Vertex<Type> *to;
     double weight;
-    DoubleNode<Edge<Type>>* reference_to_self;
-    DoubleListHT<Edge<Type>>* reference_to_edges_list;
-    DoubleNode<Edge<Type>*>* reference_to_self_fromv;
-    DoubleListHT<Edge<Type>*>* reference_to_list_fromv;
+    DoubleNode<Edge<Type>*>* node_in_source;
+    DoubleNode<Edge<Type>*>* node_in_dest;
+    DoubleNode<Edge<Type>>* node_in_graph;
     Edge(Vertex<Type>* f, Vertex<Type>* t, double w) : from(f), to(t), weight(w) {}
 };
 
@@ -33,7 +32,8 @@ public:
     int id;
     std::string label;
     std::string data;
-    DoubleListHT<Edge<Type>*> neighbors;
+    DoubleListHT<Edge<Type>*> outgoing;  // Edges going out from this vertex
+    DoubleListHT<Edge<Type>*> incoming;  // Edges coming into this vertex
 
     Vertex(int i, std::string l, Type d) : id(i), label(l), data(d) {}
 };
@@ -76,15 +76,21 @@ public:
     void remove_vertex(int id)
     {
         Vertex<Type>& vertex = vertices[id];
-        DoubleNode<Edge<Type>*>* node = vertex.neighbors.first_node();
+        DoubleNode<Edge<Type>*>* node = vertex.outgoing.first_node();
 
-        // Usuwanie krawędzi odniesienia do tego wierzchołka
         while(node != nullptr)
         {
             Edge<Type>* edge = node->value;
-            size_t i = 0;
-            edge->references_to_self->clear();
-            edge->reference_to_self_list->remove_given(edge->reference_to_self);
+            remove_edge(id, edge->to->id);
+            node=node->next_element;
+        }
+
+        node = vertex.incoming.first_node();
+
+        while(node != nullptr)
+        {
+            Edge<Type>* edge = node->value;
+            remove_edge(edge->from->id, id);
             node=node->next_element;
         }
 
@@ -105,45 +111,32 @@ public:
     void add_edge(int fromId, int toId, double weight)
     {
         Edge<Type> new_edge(&vertices[fromId], &vertices[toId], weight);
-        new_edge.reference_to_self_list = &edges;
         DoubleNode<Edge<Type>>* ref = edges.add_back_special(new_edge);
-        edges.last_value().reference_to_self = ref;
-        edges.last_value().reference_to_edges_list = &edges;
+        edges.last_value().node_in_graph = ref;
+        edges.last_value().node_in_source = vertices[fromId].outgoing.add_back_special(&edges.last_value());
+        edges.last_value().node_in_dest = vertices[toId].incoming.add_back_special(&edges.last_value());
     }
 
-    void remove_edge(int fromId, int toId)
+    void remove_edge(int from_id, int to_id)
     {
-        Vertex<Type>& from_vertex = vertices[fromId];
-        DoubleNode<Edge<Type>*>* node = from_vertex.neighbors.first_node();
+        Vertex<Type>& from_vertex = vertices[from_id];
+        Vertex<Type>& to_vertex = vertices[to_id];
 
-        while(node != nullptr)
+        // Find edge in the outgoing list and remove it
+        DoubleNode<Edge<Type>*>* outgoing_node = from_vertex.outgoing.first_node();
+        while (outgoing_node != nullptr)
         {
-            if (node->value->to->id == toId)
+            if (outgoing_node->value->to->id == to_id)
             {
-                Edge<Type>* edge = node->value;
-                size_t i = 0;
-                for (DoubleNode<Edge<Type>*>* ref : edge->references_to_self)
-                {
-                    if (ref != nullptr)
-                    {
-                        DoubleNode<Edge<Type>*>* prev_node = ref->previous_element;
-                        DoubleNode<Edge<Type>*>* next_node = ref->next_element;
-
-                        if (prev_node != nullptr)
-                            prev_node->next_element = next_node;
-                        if (next_node != nullptr)
-                            next_node->previous_element = prev_node;
-                        
-                        delete ref;
-                    }
-                    edge->references_to_self_lists[i]->size--;
-                    i++;
-                }
-                edge->reference_to_self_list->remove_given(edge->reference_to_self);
+                std::cout << "Ba!";
+                outgoing_node->value->to->incoming.remove_given(outgoing_node->value->node_in_dest);
+                from_vertex.outgoing.remove_given(outgoing_node->value->node_in_source);
+                edges.remove_given(outgoing_node->value->node_in_graph);
                 break;
             }
-            node=node->next_element;
+            outgoing_node = outgoing_node->next_element;
         }
+        std::cout << "Bangla!";
     }
 
     double generate_random_weight()
@@ -154,7 +147,7 @@ public:
 
     bool areAdjacent(Vertex<Type>& v, Vertex<Type>& w)
     {
-        DoubleNode<Edge<Type>*>* node = v.neighbors.first_node();
+        DoubleNode<Edge<Type>*>* node = v.outgoing.first_node();
         while(node != nullptr)
         {
             if (node->value->to->id == w.id)
@@ -184,7 +177,7 @@ public:
         for (Vertex<Type>& vertex : vertices)
         {
             output += "Vertex " + vertex.label + " (" + std::to_string(vertex.id) + ") - Data: " + vertex.data + "\n";
-            DoubleNode<Edge<Type>*>* node = vertex.neighbors.first_node();
+            DoubleNode<Edge<Type>*>* node = vertex.outgoing.first_node();
             while(node != nullptr)
             {
                 Edge<Type>* neighbor = node->value;

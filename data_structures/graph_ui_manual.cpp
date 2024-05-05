@@ -51,7 +51,6 @@ int remove_edge(DirectedWeightedGraph<std::string> *graph)
 {
     int id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
     int id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
-    int weight = user_input_action("Podaj wagę krawędzi: ");
     Timer timer;
     timer.start();
     graph->remove_edge(id_from, id_to);
