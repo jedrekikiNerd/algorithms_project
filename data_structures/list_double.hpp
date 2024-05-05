@@ -244,6 +244,11 @@ public:
 
             delete given_node;
             size--;
+            if (size == 0)
+            {
+                tail = nullptr;
+                head = nullptr;
+            }
     }
 
     // Clears all nodes stored by this list, useful for deconstructing to free all memory

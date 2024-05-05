@@ -75,24 +75,28 @@ public:
 
     void remove_vertex(int id)
     {
-        Vertex<Type>& vertex = vertices[id];
-        DoubleNode<Edge<Type>*>* node = vertex.outgoing.first_node();
-
-        while(node != nullptr)
+        if (id >= vertices.size())
+            return;
+        DoubleNode<Edge<Type>*>* outgoing_node = vertices[id].outgoing.first_node();
+        while (outgoing_node != nullptr)
         {
-            Edge<Type>* edge = node->value;
-            remove_edge(id, edge->to->id);
-            node=node->next_element;
+            outgoing_node->value->to->incoming.remove_given(outgoing_node->value->node_in_dest); 
+            vertices[id].outgoing.remove_given(outgoing_node->value->node_in_source);
+            edges.remove_given(outgoing_node->value->node_in_graph);
+            outgoing_node = outgoing_node->next_element;
         }
+        std::cout << "test1 ";
 
-        node = vertex.incoming.first_node();
-
-        while(node != nullptr)
+        DoubleNode<Edge<Type>*>* incoming_node = vertices[id].incoming.first_node();
+        while (incoming_node != nullptr)
         {
-            Edge<Type>* edge = node->value;
-            remove_edge(edge->from->id, id);
-            node=node->next_element;
+
+            incoming_node->value->from->outgoing.remove_given(incoming_node->value->node_in_source); 
+            vertices[id].incoming.remove_given(incoming_node->value->node_in_dest);
+            edges.remove_given(incoming_node->value->node_in_graph);
+            incoming_node = incoming_node->next_element;
         }
+        std::cout << "test2 ";
 
         // Delete given vertex
         vertices.erase(vertices.begin() + id);
@@ -122,21 +126,18 @@ public:
         Vertex<Type>& from_vertex = vertices[from_id];
         Vertex<Type>& to_vertex = vertices[to_id];
 
-        // Find edge in the outgoing list and remove it
         DoubleNode<Edge<Type>*>* outgoing_node = from_vertex.outgoing.first_node();
         while (outgoing_node != nullptr)
         {
             if (outgoing_node->value->to->id == to_id)
             {
-                std::cout << "Ba!";
-                outgoing_node->value->to->incoming.remove_given(outgoing_node->value->node_in_dest);
+                to_vertex.incoming.remove_given(outgoing_node->value->node_in_dest); 
                 from_vertex.outgoing.remove_given(outgoing_node->value->node_in_source);
                 edges.remove_given(outgoing_node->value->node_in_graph);
                 break;
             }
             outgoing_node = outgoing_node->next_element;
         }
-        std::cout << "Bangla!";
     }
 
     double generate_random_weight()
