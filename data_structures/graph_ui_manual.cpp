@@ -21,10 +21,10 @@ int add_vertex(DirectedWeightedGraph<std::string> *graph)
 // Agent between UI and graph remove vertex
 int remove_vertex(DirectedWeightedGraph<std::string> *graph)
 {
-    int id = user_input_action("Podaj id wierzchołka: ");
+    size_t id = user_input_action("Podaj id wierzchołka: ");
     Timer timer;
     timer.start();
-    graph->remove_vertex(id);
+    graph->remove_vertex(graph->get_vertex(id));
     timer.stop();
     if (print_time)
         display_action("Usuwanie wierzchołka zajęło " + std::to_string(timer.elapsedSeconds()) + "ns");
@@ -34,12 +34,12 @@ int remove_vertex(DirectedWeightedGraph<std::string> *graph)
 // Agent between UI and graph add edge
 int add_edge(DirectedWeightedGraph<std::string> *graph)
 {
-    int id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
-    int id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
+    size_t id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
+    size_t id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
     int weight = user_input_action("Podaj wagę krawędzi: ");
     Timer timer;
     timer.start();
-    graph->add_edge(id_from, id_to, double(weight));
+    graph->add_edge(graph->get_vertex(id_from), graph->get_vertex(id_to), weight);
     timer.stop();
     if (print_time)
         display_action("Dodawanie krawędzi zajęło " + std::to_string(timer.elapsedSeconds()) + "ns");
@@ -49,13 +49,65 @@ int add_edge(DirectedWeightedGraph<std::string> *graph)
 // Agent between UI and graph remove edge
 int remove_edge(DirectedWeightedGraph<std::string> *graph)
 {
-    int id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
-    int id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
+    size_t id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
+    size_t id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
     Timer timer;
     timer.start();
-    graph->remove_edge(id_from, id_to);
+    graph->remove_edge(graph->get_vertex(id_from), graph->get_vertex(id_to));
     timer.stop();
     if (print_time)
         display_action("Usuwanie krawędzi zajęło " + std::to_string(timer.elapsedSeconds()) + "ns");
+    return 0;
+}
+
+// Agent between UI and graph generate
+int generate_graph(DirectedWeightedGraph<std::string> *graph)
+{
+    int num_vertices = user_input_action("Podaj ilość wierzchołków: ");
+    float density = user_input_action_float("Podaj gęstość [0,0-1,0]: ");
+    std::string default_data = user_input_action_string("Podaj domyślne dane wpisywane do wierzchołków (string): ");
+    Timer timer;
+    timer.start();
+    graph->generate_graph(num_vertices, density, default_data);
+    timer.stop();
+    if (print_time)
+        display_action("Generowanie grafu zajęło " + std::to_string(timer.elapsedSeconds()) + "ns");
+    return 0;
+}
+
+// Agent between UI and shortest_paths
+int shortest_paths(DirectedWeightedGraph<std::string> *graph)
+{
+    size_t vertex_id = user_input_action("Podaj identyfikator wierzchołka: ");
+    Timer timer;
+    timer.start();
+    std::string result = graph->shortest_paths(vertex_id);
+    timer.stop();
+    if (print_time)
+    {
+        display_action_special(result);
+        display_action("Znalazeienie wszystkich ścieżek z podanego wierzchołka zajęło " + std::to_string(timer.elapsedSeconds()) + "ns");
+    }
+    else
+        display_action_special(result);
+    return 0;
+}
+
+// Agent between UI and shortest_path_to
+int shortest_path_to(DirectedWeightedGraph<std::string> *graph)
+{
+    size_t vertex_id = user_input_action("Podaj identyfikator wierzchołka źródłowego: ");
+    size_t vertex_dest_id = user_input_action("Podaj identyfikator wierzchołka docelowego: ");
+    Timer timer;
+    timer.start();
+    std::string result = graph->shortest_path_to(vertex_id, vertex_dest_id);
+    timer.stop();
+    if (print_time)
+    {
+        display_action_special(result);
+        display_action("Znalazeienie wszystkich ścieżki z podanego wierzchołka zajęło " + std::to_string(timer.elapsedSeconds()) + "ns");
+    }
+    else
+        display_action_special(result);
     return 0;
 }

@@ -18,6 +18,9 @@ MenuGraph<std::string>* setup_graph1_menu()
     graph1_menu->add_item_dt("|Dodaj krawędź", add_edge);
     graph1_menu->add_item_dt("|Usuń wierzchołek", remove_vertex);
     graph1_menu->add_item_dt("|Usuń krawędź", remove_edge);
+    graph1_menu->add_item_dt("|Najkrótsze ścieżki", shortest_paths);
+    graph1_menu->add_item_dt("|Najkrótsza ścieżka do...", shortest_path_to);
+    graph1_menu->add_item_dt("|Generuj graf", generate_graph);
     graph1_menu->add_item("|Wyświetlanie czasu", change_print_flag);
     graph1_menu->add_item("|Wróć do wyboru struktur", exit_action);
 

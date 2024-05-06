@@ -29,6 +29,13 @@ int launch_menu_action();
 int user_input_action(std::string input_field_label);
 
 /**
+ * Returns user input as float number
+ * 
+ * @return float 
+ */
+float user_input_action_float(std::string input_field_label);
+
+/**
  * Returns user input as string
  * 
  * @return string 
@@ -48,6 +55,13 @@ film_struct user_input_action_film();
  * @return int 
  */
 int display_action(std::string display_label);
+
+/**
+ * Displays given string
+ * 
+ * @return int 
+ */
+int display_action_special(std::string display_label);
 
 /**
  * Displays 2 given strings

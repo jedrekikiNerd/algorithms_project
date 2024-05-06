@@ -3,11 +3,8 @@
 
 #include <iostream>
 #include <vector>
-#include <string>
 #include <random>
-#include <limits>
-#include <algorithm>
-#include "list_double.hpp"
+#include <queue>
 
 template <typename Type>
 class Vertex;
@@ -16,184 +13,341 @@ template <typename Type>
 class Edge
 {
 public:
-    Vertex<Type> *from;
-    Vertex<Type> *to;
-    double weight;
-    DoubleNode<Edge<Type>*>* node_in_source;
-    DoubleNode<Edge<Type>*>* node_in_dest;
-    DoubleNode<Edge<Type>>* node_in_graph;
-    Edge(Vertex<Type>* f, Vertex<Type>* t, double w) : from(f), to(t), weight(w) {}
+    Vertex<Type>* source;
+    Vertex<Type>* destination;
+    int weight;
+    size_t id;
+
+    Edge(Vertex<Type>* source, Vertex<Type>* destination, int weight) : source(source), destination(destination), weight(weight) {}
 };
 
 template <typename Type>
 class Vertex
 {
 public:
-    int id;
+    Type data;
     std::string label;
-    std::string data;
-    DoubleListHT<Edge<Type>*> outgoing;  // Edges going out from this vertex
-    DoubleListHT<Edge<Type>*> incoming;  // Edges coming into this vertex
+    size_t id;
+    std::vector<Edge<Type>*> outgoing_edges;
+    std::vector<Edge<Type>*> incoming_edges;
 
-    Vertex(int i, std::string l, Type d) : id(i), label(l), data(d) {}
+    Vertex(Type& data, std::string label, size_t id) : data(data), label(label), id(id) {}
 };
 
 template <typename Type>
 class DirectedWeightedGraph
 {
-private:
-    std::vector<Vertex<Type>> vertices;
-    DoubleListHT<Edge<Type>> edges;
-    std::mt19937 gen;
-
 public:
+    std::vector<Vertex<Type>*> vertices;
+    std::vector<Edge<Type>*> edges;
+
     DirectedWeightedGraph() {}
-    DirectedWeightedGraph(int numVertices, double density) : gen(std::random_device{}())
+
+    void generate_graph(int num_vertices, float density, Type default_data)
     {
-        for (int i = 0; i < numVertices; i++)
+        // Add given number of vertices
+        for (int i = 0; i < num_vertices; ++i)
         {
-            add_vertex("Vertex " + std::to_string(i));
+            std::string label = "Vertex_" + std::to_string(i);
+            this->add_vertex(default_data, label);
         }
 
-        std::uniform_real_distribution<double> dis(0.0, 1.0);
-        for (int i = 0; i < numVertices; i++)
+        int num_of_edges = 0;
+
+        // Random generator
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+
+        // Adding edges with probability of given density
+        for (size_t i = 0; i < num_vertices; i++)
         {
-            for (int j = 0; j < numVertices; j++)
+            for (size_t j = i + 1; j < num_vertices; j++)
             {
-                if (i != j && dis(gen) < density)
+                if (dis(gen) < density)
                 {
-                    add_edge(i, j, generate_random_weight());
+                    // Calculate random weight
+                    int weight = std::uniform_int_distribution<>(1, 100)(gen);
+
+                    // Adding edge
+                    this->add_edge(this->get_vertex(i), this->get_vertex(j), weight);
+                    this->add_edge(this->get_vertex(j), this->get_vertex(i), weight);
                 }
             }
         }
     }
 
-    void add_vertex(const std::string& label, const std::string& data = "")
+    ~DirectedWeightedGraph()
     {
-        vertices.emplace_back(vertices.size(), label, data);
+        for (Vertex<Type>* vertex : vertices)
+            delete vertex;
+        for (Edge<Type>* edge : edges)
+            delete edge;
     }
 
-    void remove_vertex(int id)
+    void add_vertex(Type& data, std::string label)
     {
-        if (id >= vertices.size())
-            return;
-        DoubleNode<Edge<Type>*>* outgoing_node = vertices[id].outgoing.first_node();
-        while (outgoing_node != nullptr)
+        size_t id = vertices.size();
+        Vertex<Type>* new_vertex = new Vertex<Type>(data, label, id);
+        vertices.push_back(new_vertex);
+    }
+
+    void add_edge(Vertex<Type>* source, Vertex<Type>* destination, int weight)
+    {
+        Edge<Type>* new_edge = new Edge<Type>(source, destination, weight);
+        new_edge->id = edges.size();
+        source->outgoing_edges.push_back(new_edge);
+        destination->incoming_edges.push_back(new_edge);
+        edges.push_back(new_edge);
+    }
+
+    Vertex<Type>* get_vertex(size_t id)
+    {
+        return vertices[id];
+    }
+
+    void remove_vertex(Vertex<Type>* vertex)
+    {
+        // Remove incoming edges
+        for (size_t i = 0; i < vertex->incoming_edges.size(); ++i)
         {
-            outgoing_node->value->to->incoming.remove_given(outgoing_node->value->node_in_dest); 
-            vertices[id].outgoing.remove_given(outgoing_node->value->node_in_source);
-            edges.remove_given(outgoing_node->value->node_in_graph);
-            outgoing_node = outgoing_node->next_element;
-        }
-        std::cout << "test1 ";
+            Edge<Type>* edge = vertex->incoming_edges[i];
+            Vertex<Type>* source = edge->source;
 
-        DoubleNode<Edge<Type>*>* incoming_node = vertices[id].incoming.first_node();
-        while (incoming_node != nullptr)
-        {
-
-            incoming_node->value->from->outgoing.remove_given(incoming_node->value->node_in_source); 
-            vertices[id].incoming.remove_given(incoming_node->value->node_in_dest);
-            edges.remove_given(incoming_node->value->node_in_graph);
-            incoming_node = incoming_node->next_element;
-        }
-        std::cout << "test2 ";
-
-        // Delete given vertex
-        vertices.erase(vertices.begin() + id);
-
-        // Update indexes of vertices
-        for (Vertex<Type> &v : vertices)
-        {
-            // Every bigger id has to be decreased by one
-            if (v.id > id)
+            // Remove edge from outgoing edges in source vertex
+            for (size_t j = 0; j < source->outgoing_edges.size(); ++j)
             {
-                v.id--;
+                if (source->outgoing_edges[j] == edge)
+                {
+                    source->outgoing_edges.erase(source->outgoing_edges.begin() + j);
+                    break;
+                }
             }
-        }
-    }
-
-    void add_edge(int fromId, int toId, double weight)
-    {
-        Edge<Type> new_edge(&vertices[fromId], &vertices[toId], weight);
-        DoubleNode<Edge<Type>>* ref = edges.add_back_special(new_edge);
-        edges.last_value().node_in_graph = ref;
-        edges.last_value().node_in_source = vertices[fromId].outgoing.add_back_special(&edges.last_value());
-        edges.last_value().node_in_dest = vertices[toId].incoming.add_back_special(&edges.last_value());
-    }
-
-    void remove_edge(int from_id, int to_id)
-    {
-        Vertex<Type>& from_vertex = vertices[from_id];
-        Vertex<Type>& to_vertex = vertices[to_id];
-
-        DoubleNode<Edge<Type>*>* outgoing_node = from_vertex.outgoing.first_node();
-        while (outgoing_node != nullptr)
-        {
-            if (outgoing_node->value->to->id == to_id)
+            // Reindex edges ids
+            for (size_t i = (edge->id)+1; i < edges.size(); i++)
             {
-                to_vertex.incoming.remove_given(outgoing_node->value->node_in_dest); 
-                from_vertex.outgoing.remove_given(outgoing_node->value->node_in_source);
-                edges.remove_given(outgoing_node->value->node_in_graph);
+                edges[i]->id = i-1;
+            }
+            edges.erase(edges.begin() + edge->id);
+            delete edge;
+        }
+        vertex->incoming_edges.clear();
+
+        // Delete edges that go out from our vertex
+        for (size_t i = 0; i < vertex->outgoing_edges.size(); ++i)
+        {
+            Edge<Type>* edge = vertex->outgoing_edges[i];
+            Vertex<Type>* destination = edge->destination;
+
+            // Delete edges in destination vertex incoming edges
+            for (size_t j = 0; j < destination->incoming_edges.size(); ++j)
+            {
+                if (destination->incoming_edges[j] == edge)
+                {
+                    destination->incoming_edges.erase(destination->incoming_edges.begin() + j);
+                    break;
+                }
+            }
+            // Reindex edges ids
+            for (size_t i = (edge->id)+1; i < edges.size(); i++)
+            {
+                edges[i]->id = i-1;
+            }
+            edges.erase(edges.begin() + edge->id);
+            delete edge;
+        }
+        vertex->outgoing_edges.clear();
+
+        // Reindex vertices ids
+        for (size_t i = (vertex->id)+1; i < vertices.size(); i++)
+        {
+            vertices[i]->id = i-1;
+        }
+
+        vertices.erase(vertices.begin() + vertex->id);
+
+        // Delete vertex pointer
+        delete vertex;
+    }
+
+    void remove_edge(Vertex<Type>* source, Vertex<Type>* destination)
+    {
+        // Find pointer to edge between these two vertexes
+        Edge<Type>* edge_to_remove = nullptr;
+        for (size_t i = 0; i < source->outgoing_edges.size(); i++)
+        {
+            if (source->outgoing_edges[i]->destination == destination)
+            {
+                edge_to_remove = source->outgoing_edges[i];
                 break;
             }
-            outgoing_node = outgoing_node->next_element;
         }
-    }
 
-    double generate_random_weight()
-    {
-        std::uniform_real_distribution<double> dis(1.0, 10.0);
-        return dis(gen);
-    }
-
-    bool areAdjacent(Vertex<Type>& v, Vertex<Type>& w)
-    {
-        DoubleNode<Edge<Type>*>* node = v.outgoing.first_node();
-        while(node != nullptr)
+        // If edge exists delete it
+        if (edge_to_remove)
         {
-            if (node->value->to->id == w.id)
-                return true;
+            // Delete edge pointer from source vertex outgoing edges vector
+            for (size_t i = 0; i < source->outgoing_edges.size(); i++)
+            {
+                if (source->outgoing_edges[i] == edge_to_remove)
+                {
+                    source->outgoing_edges.erase(source->outgoing_edges.begin() + i);
+                    break;
+                }
+            }
+
+            // Delete edge pointer from destination vertex incoming edges vector
+            for (size_t i = 0; i < destination->incoming_edges.size(); i++)
+            {
+                if (destination->incoming_edges[i] == edge_to_remove)
+                {
+                    destination->incoming_edges.erase(destination->incoming_edges.begin() + i);
+                    break;
+                }
+            }
+
+            // Reindex edges ids
+            for (size_t i = (edge_to_remove->id)+1; i < edges.size(); i++)
+            {
+                edges[i]->id = i-1;
+            }
+            edges.erase(edges.begin() + edge_to_remove->id);
+            // Delete edge
+            delete edge_to_remove;
         }
-        return false;
-    }
-
-    void replace_data(Vertex<Type>& v, Type& x)
-    {
-        v.data = x;
-    }
-
-    void replace(Vertex<Type>& v, std::string& x)
-    {
-        v.label = x;
-    }
-
-    void replace_weight(Edge<Type>& e, double x)
-    {
-        e.weight = x;
     }
 
     std::string get_as_string()
     {
         std::string output = "";
-        for (Vertex<Type>& vertex : vertices)
+        for (Vertex<Type>* vertex : vertices)
         {
-            output += "Vertex " + vertex.label + " (" + std::to_string(vertex.id) + ") - Data: " + vertex.data + "\n";
-            DoubleNode<Edge<Type>*>* node = vertex.outgoing.first_node();
-            while(node != nullptr)
+            output += "Vertex " + vertex->label + " (" + std::to_string(vertex->id) + ") - Data: " + vertex->data + "\n";
+            for (Edge<Type>* out_edge : vertex->outgoing_edges)
             {
-                Edge<Type>* neighbor = node->value;
-                output += "  connects to Vertex " + neighbor->to->label + " (" + std::to_string(neighbor->to->id) + ") with weight " + std::to_string(neighbor->weight) + "\n";
-                node = node->next_element;
+                output += "  connects to Vertex " + out_edge->destination->label + " (" + std::to_string(out_edge->destination->id) + ") with weight " + std::to_string(out_edge->weight) + "\n";
             }
             output += "\n";
         }
         return output;
     }
 
-    // Return size of graphin bytes
+    // Return size of graph in bytes
     unsigned int get_byte_size()
     {
         return sizeof(DirectedWeightedGraph) + sizeof(vertices) + sizeof(edges);
+    }
+
+    std::string shortest_paths(size_t src)
+    {
+        std::priority_queue<std::pair<int, Vertex<Type>*>, std::vector<std::pair<int, Vertex<Type>*>>, std::greater<std::pair<int, Vertex<Type>*>>> pq;
+
+        // Set distances as infinity
+        std::vector<int> dist(vertices.size(), std::numeric_limits<int>::max());
+        // Vector to store the paths
+        std::vector<std::vector<size_t>> paths(vertices.size());
+
+        // Distance to self set to 0
+        pq.push({0, vertices[src]});
+        dist[src] = 0;
+
+        // Main loop of dijkstra algorithm
+        while (!pq.empty())
+        {
+            int u = pq.top().second->id;
+            pq.pop();
+
+            // Go through edges that go out of vertex
+            for (Edge<Type>* edge : vertices[u]->outgoing_edges)
+            {
+                int v = edge->destination->id;
+                int weight = edge->weight;
+
+                // If path through u is shorter than v
+                if (dist[v] > dist[u] + weight)
+                {
+                    // Update distance
+                    dist[v] = dist[u] + weight;
+                    // Store the path
+                    paths[v] = paths[u];
+                    paths[v].push_back(v);
+                    pq.push({dist[v], edge->destination});
+                }
+            }
+        }
+
+        std::string result = "";
+
+        // Show distances and paths
+        result += "Vertex Distance from Source\n";
+        for (size_t i = 0; i < vertices.size(); i++)
+        {
+            result += "To id: (" + std::to_string(i) + ")\t\tDistance: " + std::to_string(dist[i]) + "\t\tPath: ";
+            for (size_t j = 0; j < paths[i].size(); j++)
+            {
+                result += std::to_string(paths[i][j]) + " ";
+            }
+            result += "\n";
+        }
+        return result;
+    }
+
+std::string shortest_path_to(size_t src, size_t dest)
+    {
+        std::priority_queue<std::pair<int, Vertex<Type>*>, std::vector<std::pair<int, Vertex<Type>*>>, std::greater<std::pair<int, Vertex<Type>*>>> pq;
+
+        // Set distances as infinity
+        std::vector<int> dist(vertices.size(), std::numeric_limits<int>::max());
+        // Vector to store the paths
+        std::vector<std::vector<size_t>> paths(vertices.size());
+
+        // Distance to self set to 0
+        pq.push({0, vertices[src]});
+        dist[src] = 0;
+
+        // Main loop of dijkstra algorithm
+        while (!pq.empty())
+        {
+            int u = pq.top().second->id;
+            pq.pop();
+
+            // Stop when destination is reached
+            if (u == dest)
+                break;
+
+            // Go through edges that go out of vertex
+            for (Edge<Type>* edge : vertices[u]->outgoing_edges)
+            {
+                int v = edge->destination->id;
+                int weight = edge->weight;
+
+                // If path through u is shorter than v
+                if (dist[v] > dist[u] + weight)
+                {
+                    // Update distance
+                    dist[v] = dist[u] + weight;
+                    // Store the path
+                    paths[v] = paths[u];
+                    paths[v].push_back(v);
+                    pq.push({dist[v], edge->destination});
+                }
+            }
+        }
+
+        std::cout << "Super jest!";
+
+        std::string result = "";
+
+        // Show distances and paths
+        result += "Vertex Distance from Source\n";
+        result += "To id: (" + std::to_string(dest) + ")\t\tDistance: " + std::to_string(dist[dest]) + "\t\tPath: ";
+        for (size_t j = 0; j < paths[dest].size(); j++)
+        {
+            std::cout << j << std::endl;
+            result += std::to_string(paths[dest][j]) + " ";
+        }
+        result += "\n";
+        return result;
     }
 };
 

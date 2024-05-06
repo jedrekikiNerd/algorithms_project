@@ -117,6 +117,20 @@ int display_action(std::string display_label)
 }
 
 /**
+ * Displays given string
+ * 
+ * @return int 
+ */
+int display_action_special(std::string display_label)
+{
+    clear();
+    printw(display_label.c_str());
+    refresh();
+    getch();
+    return 0;
+}
+
+/**
  * Displays 2 given strings
  * 
  * @return int 
