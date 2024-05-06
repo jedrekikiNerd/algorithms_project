@@ -1,11 +1,11 @@
 #include "graph_ui_manual.hpp"
 #include "../ui_actions.h"
-#include "../Timer.h"
+#include "../Timer.hpp"
 #include <iostream>
-#include "graph.hpp"
+#include "Igraph.hpp"
 
 // Agent between UI and graph add vertex
-int add_vertex(DirectedWeightedGraph<std::string> *graph)
+int add_vertex(GraphInterface<std::string> *graph)
 {
     std::string data = user_input_action_string("Podaj dane, które mają znaleźć się w wierzchołku grafu: ");
     std::string label = user_input_action_string("Podaj nazwę wierzchołka: ");
@@ -19,7 +19,7 @@ int add_vertex(DirectedWeightedGraph<std::string> *graph)
 }
 
 // Agent between UI and graph remove vertex
-int remove_vertex(DirectedWeightedGraph<std::string> *graph)
+int remove_vertex(GraphInterface<std::string> *graph)
 {
     size_t id = user_input_action("Podaj id wierzchołka: ");
     Timer timer;
@@ -32,7 +32,7 @@ int remove_vertex(DirectedWeightedGraph<std::string> *graph)
 }
 
 // Agent between UI and graph add edge
-int add_edge(DirectedWeightedGraph<std::string> *graph)
+int add_edge(GraphInterface<std::string> *graph)
 {
     size_t id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
     size_t id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
@@ -47,7 +47,7 @@ int add_edge(DirectedWeightedGraph<std::string> *graph)
 }
 
 // Agent between UI and graph remove edge
-int remove_edge(DirectedWeightedGraph<std::string> *graph)
+int remove_edge(GraphInterface<std::string> *graph)
 {
     size_t id_from = user_input_action("Podaj id wierzchołka z którego wychodzi krawędź: ");
     size_t id_to = user_input_action("Podaj id wierzchołka do którego wchodzi krawędź: ");
@@ -61,7 +61,7 @@ int remove_edge(DirectedWeightedGraph<std::string> *graph)
 }
 
 // Agent between UI and graph generate
-int generate_graph(DirectedWeightedGraph<std::string> *graph)
+int generate_graph(GraphInterface<std::string> *graph)
 {
     int num_vertices = user_input_action("Podaj ilość wierzchołków: ");
     float density = user_input_action_float("Podaj gęstość [0,0-1,0]: ");
@@ -76,7 +76,7 @@ int generate_graph(DirectedWeightedGraph<std::string> *graph)
 }
 
 // Agent between UI and shortest_paths
-int shortest_paths(DirectedWeightedGraph<std::string> *graph)
+int shortest_paths(GraphInterface<std::string> *graph)
 {
     size_t vertex_id = user_input_action("Podaj identyfikator wierzchołka: ");
     Timer timer;
@@ -94,7 +94,7 @@ int shortest_paths(DirectedWeightedGraph<std::string> *graph)
 }
 
 // Agent between UI and shortest_path_to
-int shortest_path_to(DirectedWeightedGraph<std::string> *graph)
+int shortest_path_to(GraphInterface<std::string> *graph)
 {
     size_t vertex_id = user_input_action("Podaj identyfikator wierzchołka źródłowego: ");
     size_t vertex_dest_id = user_input_action("Podaj identyfikator wierzchołka docelowego: ");

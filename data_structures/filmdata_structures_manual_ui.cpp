@@ -3,7 +3,7 @@
 #include "filmdata_structures_manual_ui.hpp"
 #include "I_data_structure.h"
 #include "dynamic_array.h"
-#include "../Timer.h"
+#include "../Timer.hpp"
 #include <fstream>
 #include <limits>
 #include <iomanip>

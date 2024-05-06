@@ -1,4 +1,4 @@
-#include "Timer.h"
+#include "Timer.hpp"
 #include "data_structures/I_data_structure.h"
 #include "data_structures/list_double.hpp"
 #include "data_structures/dynamic_array.h"
@@ -10,6 +10,7 @@
 #include "ui_actions.h"
 #include <iomanip>
 #include "algorithms/sorts.hpp"
+#include "test.hpp"
 
 namespace fs = std::filesystem;
 Timer timer;

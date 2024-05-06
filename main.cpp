@@ -6,7 +6,7 @@
 #include "data_structures/graph.hpp"
 #include "data_structures/filmdata_structures_manual_ui.hpp"
 #include "data_structures/graph_ui_manual.hpp"
-#include "test.h"
+#include "test.hpp"
 #include "data_structures/film_struct.h"
 
 
