@@ -232,6 +232,31 @@ public:
         return output;
     }
 
+    bool are_adjacent(Vertex<Type>* v, Vertex<Type>* w)
+    {
+        for(Edge<Type>* e : v->outgoing_edges)
+        {
+            if (e->destination == w)
+                return true;
+        }
+        return false;
+    }
+
+    void replace_data(Vertex<Type>* v, Type& x)
+    {
+        v->data = x;
+    }
+
+    void replace(Vertex<Type>* v, std::string x)
+    {
+        v->label = x;
+    }
+
+    void replace_weight(Edge<Type>* e, int x)
+    {
+        e->weight = x;
+    }
+
     // Return size of graph in bytes
     unsigned int get_byte_size()
     {
@@ -256,6 +281,8 @@ public:
         {
             int u = pq.top().second->id;
             pq.pop();
+
+            std::cout << u << " ";
 
             // Go through edges that go out of vertex
             for (Edge<Type>* edge : vertices[u]->outgoing_edges)
@@ -334,8 +361,6 @@ std::string shortest_path_to(size_t src, size_t dest)
             }
         }
 
-        std::cout << "Super jest!";
-
         std::string result = "";
 
         // Show distances and paths
@@ -343,7 +368,6 @@ std::string shortest_path_to(size_t src, size_t dest)
         result += "To id: (" + std::to_string(dest) + ")\t\tDistance: " + std::to_string(dist[dest]) + "\t\tPath: ";
         for (size_t j = 0; j < paths[dest].size(); j++)
         {
-            std::cout << j << std::endl;
             result += std::to_string(paths[dest][j]) + " ";
         }
         result += "\n";
