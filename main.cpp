@@ -4,9 +4,11 @@
 #include "ui_actions.h"
 #include "data_structures/dynamic_array.h"
 #include "data_structures/graph.hpp"
+#include "data_structures/graph2.hpp"
 #include "data_structures/filmdata_structures_manual_ui.hpp"
 #include "data_structures/graph_ui_manual.hpp"
 #include "test.hpp"
+#include "test_graph.hpp"
 #include "data_structures/film_struct.h"
 
 
@@ -25,6 +27,23 @@ MenuGraph<std::string>* setup_graph1_menu()
     graph1_menu->add_item("|Wróć do wyboru struktur", exit_action);
 
     return graph1_menu;
+}
+
+// Create and return menu for graph on matrix
+MenuGraph<std::string>* setup_graph2_menu()
+{
+    MenuGraph<std::string> *graph2_menu = new MenuGraph<std::string>(new DirectedWeightedGraphIncidence<std::string>);
+    graph2_menu->add_item_dt("|Dodaj wierzchołek", add_vertex);
+    graph2_menu->add_item_dt("|Dodaj krawędź", add_edge);
+    graph2_menu->add_item_dt("|Usuń wierzchołek", remove_vertex);
+    graph2_menu->add_item_dt("|Usuń krawędź", remove_edge);
+    graph2_menu->add_item_dt("|Najkrótsze ścieżki", shortest_paths);
+    graph2_menu->add_item_dt("|Najkrótsza ścieżka do...", shortest_path_to);
+    graph2_menu->add_item_dt("|Generuj graf", generate_graph);
+    graph2_menu->add_item("|Wyświetlanie czasu", change_print_flag);
+    graph2_menu->add_item("|Wróć do wyboru struktur", exit_action);
+
+    return graph2_menu;
 }
 
 // Create and return menu for dynarray
@@ -72,9 +91,11 @@ Menu* set_up_ui()
 
     // Create main_menu and add menu items to it
     Menu *main_menu = new Menu();
-    main_menu->add_item("|Wykonaj automatyczne testy", run_tests);
+    main_menu->add_item("|Wykonaj automatyczne testy sortowania", run_tests);
+    main_menu->add_item("|Wykonaj automatyczne testy dijkstry", run_tests_graph);
     main_menu->add_item("|Praca z listą filmów", setup_dynarray_menu());
     main_menu->add_item("|Praca z grafem", setup_graph1_menu());
+    main_menu->add_item("|Praca z grafem na macierzy", setup_graph2_menu());
     main_menu->add_item("|Pomoc", display_help);
     main_menu->add_item("|Exit", exit_action);
     

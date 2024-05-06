@@ -1,5 +1,5 @@
-#ifndef GRAPHS
-#define GRAPHS
+#ifndef GRAPH1
+#define GRAPH1
 
 #include <iostream>
 #include <vector>
@@ -256,8 +256,6 @@ public:
             int u = pq.top().second->id;
             pq.pop();
 
-            std::cout << u << " ";
-
             // Go through edges that go out of vertex
             for (Edge<Type>* edge : vertices[u]->outgoing_edges)
             {
@@ -346,6 +344,11 @@ std::string shortest_path_to(size_t src, size_t dest)
         }
         result += "\n";
         return result;
+    }
+
+    size_t get_size()
+    {
+        return vertices.size();
     }
 };
 

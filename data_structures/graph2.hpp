@@ -1,3 +1,6 @@
+#ifndef GRAPH2
+#define GRAPH2
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -44,8 +47,8 @@ public:
                     int weight = std::uniform_int_distribution<>(1, 100)(gen);
 
                     // Adding edge
-                    add_edge(i, j, weight);
-                    add_edge(j, i, weight);
+                    add_edge(vertices[i], vertices[j], weight);
+                    add_edge(vertices[j], vertices[i], weight);
                 }
             }
         }
@@ -57,8 +60,10 @@ public:
     }
 
     // Add edge between vertices
-    void add_edge(size_t source_id, size_t destination_id, int weight)
+    void add_edge(Vertex<Type>* source, Vertex<Type>* destination, int weight)
     {
+        size_t source_id = source->id;
+        size_t destination_id = destination->id;
         Edge<Type>* new_edge = new Edge<Type>(vertices[source_id], vertices[destination_id], weight);
         incidence_matrix[source_id][destination_id] = new_edge;
         incidence_matrix[destination_id][source_id] = new_edge;
@@ -69,19 +74,26 @@ public:
     {
         size_t source_id = source->id;
         size_t destination_id = destination->id;
-        delete incidence_matrix[source_id][destination_id];
-        incidence_matrix[source_id][destination_id] = nullptr;
-        delete incidence_matrix[destination_id][source_id];
-        incidence_matrix[destination_id][source_id] = nullptr;
+
+        if (incidence_matrix[source_id][destination_id] != nullptr)
+        {
+            delete incidence_matrix[source_id][destination_id];
+            incidence_matrix[source_id][destination_id] = nullptr;
+        }
+    
+        if (incidence_matrix[destination_id][source_id] != nullptr)
+        {
+            incidence_matrix[destination_id][source_id] = nullptr;
+        }
     }
 
     // Add a new vertex to the graph
-    void add_vertex()
+    void add_vertex(Type& data, std::string label)
     {
         size_t num_vertices = vertices.size();
 
         // Add a new vertex
-        vertices.push_back(new Vertex<Type>(Type(), "Vertex_" + std::to_string(num_vertices), num_vertices));
+        vertices.push_back(new Vertex<Type>(data, label, num_vertices));
 
         // Resize each row in incidence matrix and add nullptr for the new vertex
         for (std::vector<Edge<Type>*> &row : incidence_matrix)
@@ -92,8 +104,9 @@ public:
     }
 
     // Remove a vertex from the graph
-    void remove_vertex(size_t vertex_id)
+    void remove_vertex(Vertex<Type>* vertex)
     {
+        size_t vertex_id = vertex->id;
         // Delete all edges connected to the vertex
         for (size_t i = 0; i < incidence_matrix.size(); i++)
         {
@@ -105,14 +118,13 @@ public:
 
             if (incidence_matrix[i][vertex_id] != nullptr)
             {
-                delete incidence_matrix[i][vertex_id];
                 incidence_matrix[i][vertex_id] = nullptr;
             }
         }
 
-        for(int i = vertex_id+1; i<vertices.size(); i++)
+        for(size_t i = vertex_id+1; i<vertices.size(); i++)
         {
-            vertices[id]->id--;
+            vertices[i]->id--;
         }
 
         // Delete the vertex object
@@ -125,14 +137,40 @@ public:
             row.erase(row.begin() + vertex_id);
     }
 
+    bool are_adjacent(Vertex<Type>* v, Vertex<Type>* w)
+    {
+        return false;
+    }
+
+    void replace_data(Vertex<Type>* v, Type& x)
+    {
+        v->data = x;
+    }
+
+    void replace(Vertex<Type>* v, std::string x)
+    {
+        v->label = x;
+    }
+
+    void replace_weight(Edge<Type>* e, int x)
+    {
+        e->weight = x;
+    }
+
+    // Return size of graph in bytes
+    unsigned int get_byte_size()
+    {
+        return sizeof(DirectedWeightedGraphIncidence) + sizeof(vertices) + sizeof(incidence_matrix);
+    }
+
     std::string shortest_paths(size_t src)
     {
         std::priority_queue<std::pair<int, size_t>, std::vector<std::pair<int, size_t>>, std::greater<std::pair<int, size_t>>> pq;
 
         // Set distances as infinity
-        std::vector<int> dist(vertices_data.size(), std::numeric_limits<int>::max());
+        std::vector<int> dist(vertices.size(), std::numeric_limits<int>::max());
         // Vector to store the paths
-        std::vector<std::vector<size_t>> paths(vertices_data.size());
+        std::vector<std::vector<size_t>> paths(vertices.size());
 
         // Distance to self set to 0
         pq.push({0, src});
@@ -149,7 +187,7 @@ public:
             {
                 if (incidence_matrix[u][v] != 0)
                 {
-                    int weight = incidence_matrix[u][v];
+                    int weight = incidence_matrix[u][v]->weight;
                     
                     // If path through u is shorter than v
                     if (dist[v] > dist[u] + weight)
@@ -169,7 +207,7 @@ public:
 
         // Show distances and paths
         result += "Vertex Distance from Source\n";
-        for (size_t i = 0; i < vertices_data.size(); i++)
+        for (size_t i = 0; i < vertices.size(); i++)
         {
             result += "To id: (" + std::to_string(i) + ")\t\tDistance: " + std::to_string(dist[i]) + "\t\tPath: ";
             for (size_t j = 0; j < paths[i].size(); j++)
@@ -181,13 +219,71 @@ public:
         return result;
     }
 
+    std::string shortest_path_to(size_t src, size_t dest)
+    {
+        std::priority_queue<std::pair<int, size_t>, std::vector<std::pair<int, size_t>>, std::greater<std::pair<int, size_t>>> pq;
+
+        // Set distances as infinity
+        std::vector<int> dist(vertices.size(), std::numeric_limits<int>::max());
+        // Vector to store the paths
+        std::vector<std::vector<size_t>> paths(vertices.size());
+
+        // Distance to self set to 0
+        pq.push({0, src});
+        dist[src] = 0;
+
+        // Main loop of dijkstra algorithm
+        while (!pq.empty())
+        {
+            size_t u = pq.top().second;
+            pq.pop();
+
+            // Stop when destination is reached
+            if (u == dest)
+                break;
+
+
+            // Go through edges incident to vertex u
+            for (size_t v = 0; v < incidence_matrix[u].size(); ++v)
+            {
+                if (incidence_matrix[u][v] != 0)
+                {
+                    int weight = incidence_matrix[u][v]->weight;
+                    
+                    // If path through u is shorter than v
+                    if (dist[v] > dist[u] + weight)
+                    {
+                        // Update distance
+                        dist[v] = dist[u] + weight;
+                        // Store the path
+                        paths[v] = paths[u];
+                        paths[v].push_back(v);
+                        pq.push({dist[v], v});
+                    }
+                }
+            }
+        }
+
+        std::string result = "";
+
+        // Show distances and paths
+        result += "Vertex Distance from Source\n";
+        result += "To id: (" + std::to_string(dest) + ")\t\tDistance: " + std::to_string(dist[dest]) + "\t\tPath: ";
+        for (size_t j = 0; j < paths[dest].size(); j++)
+        {
+            result += std::to_string(paths[dest][j]) + " ";
+        }
+        result += "\n";
+        return result;
+    }
+
     // Returning graph as string in order to display it
     std::string get_as_string()
     {
         std::string output = "";
         for (size_t i = 0; i < incidence_matrix.size(); i++)
         {
-            output += "Vertex " + std::to_string(i) + "\n";
+            output += "Vertex " + vertices[i]->label + " (" + std::to_string(vertices[i]->id) + ") - Data: " + vertices[i]->data + "\n";
             for (size_t j = 0; j < incidence_matrix[i].size(); j++)
             {
                 if (incidence_matrix[i][j] != nullptr)
@@ -198,4 +294,11 @@ public:
         }
         return output;
     }
+
+    size_t get_size()
+    {
+        return vertices.size();
+    }
 };
+
+#endif

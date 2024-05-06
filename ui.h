@@ -4,7 +4,7 @@
 #include <functional>
 #include "data_structures/I_data_structure.h"
 #include "data_structures/dynamic_array.h"
-#include "data_structures/graph.hpp"
+#include "data_structures/Igraph.hpp"
 #include "ui_actions.h"
 
 // Key definitions for handling UI interactions with keyboard
@@ -83,13 +83,13 @@ class MenuItemGraphFunction : public MenuItemInterface
 {
     private:
         // Function we call when element is clicked (ptr to it)
-        std::function<int(DirectedWeightedGraph<Type>*)> func;
-        DirectedWeightedGraph<Type> *dt;
+        std::function<int(GraphInterface<Type>*)> func;
+        GraphInterface<Type> *dt;
 
     public:
 
         MenuItemGraphFunction() : MenuItemInterface(), func(nullptr), dt(nullptr){}
-        MenuItemGraphFunction(std::string label, std::function<int(DirectedWeightedGraph<Type>*)> func, DirectedWeightedGraph<Type> *dt) : MenuItemInterface(label), func(func), dt(dt){}
+        MenuItemGraphFunction(std::string label, std::function<int(GraphInterface<Type>*)> func, GraphInterface<Type> *dt) : MenuItemInterface(label), func(func), dt(dt){}
         int clicked()
         {
             // Do not call func if it's null!
@@ -339,17 +339,17 @@ template <typename Type>
 class MenuGraph : public Menu
 {
     private:
-        DirectedWeightedGraph<Type> *dt;
+        GraphInterface<Type> *dt;
 
     public:
         MenuGraph() : Menu(), dt(nullptr){}
-        MenuGraph(DirectedWeightedGraph<Type> *ptr_to_dt) : Menu(), dt(ptr_to_dt) {}
+        MenuGraph(GraphInterface<Type> *ptr_to_dt) : Menu(), dt(ptr_to_dt) {}
         ~MenuGraph()
         {
             delete dt;
             dt = nullptr;
         }
-        void add_item_dt(std::string label, std::function<int(DirectedWeightedGraph<Type>*)> func)
+        void add_item_dt(std::string label, std::function<int(GraphInterface<Type>*)> func)
         {
             if (items_number<MAX_ITEMS)
             {

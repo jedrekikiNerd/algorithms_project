@@ -19,12 +19,11 @@ class DoubleListHT : public IDataStructure<Type>
 private:
     DoubleNode<Type>* head;
     DoubleNode<Type>* tail;
-    //unsigned int size;
+    unsigned int size;
 
 
 public:
 
-    unsigned int size;
     DoubleListHT() : head(nullptr), tail(nullptr), size(0) {}
     ~DoubleListHT()
     {

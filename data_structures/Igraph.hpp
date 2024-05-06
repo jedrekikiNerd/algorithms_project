@@ -8,8 +8,6 @@ class GraphInterface
 {
 public:
 
-    GraphInterface() {}
-
     virtual void generate_graph(int num_vertices, float density, Type default_data) = 0;
 
     ~GraphInterface() {}
@@ -35,6 +33,8 @@ public:
     virtual void replace_weight(Edge<Type>* e, int x) = 0;
 
     virtual unsigned int get_byte_size() = 0;
+
+    virtual size_t get_size() = 0;
 
     virtual std::string shortest_paths(size_t src) = 0;
 
