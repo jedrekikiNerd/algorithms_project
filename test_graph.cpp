@@ -132,17 +132,16 @@ int run_tests_graph()
     std::string confirm = user_input_action_string("Wpisz [TAK] jeżeli chcesz kontynuować: ");
     if (confirm != "TAK")
         return 0;
-    int measure_points[6] = {10, 50, 100, 250, 500, 1000};
+    int measure_points[7] = {10, 50, 100, 250, 500, 750, 1000};
 
     removeFilesInFolder3("tests_results");
 
     int repetition = user_input_action("Podaj ile razy powtarzać pomiar: ");
 
-    for(int i=0; i<6; i++)
+    for(int i=0; i<7; i++)
     {
         std::cout << "i: " << i << "\n";
         run_all_tests_for_graphs(measure_points[i], repetition);
     }
-    std::cout << "I MADE IT \n";
     return 0;
 }
